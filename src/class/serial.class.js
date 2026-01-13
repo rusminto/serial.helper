@@ -1,7 +1,4 @@
-const SerialPort = require('serialport');
-const Readline = require('@serialport/parser-readline');
-const InterByteTimeout = require('@serialport/parser-inter-byte-timeout');
-const ByteLength = require('@serialport/parser-byte-length');
+const { SerialPort, ReadlineParser, InterByteTimeoutParser, ByteLengthParser } = require('serialport');
 const EventEmitter = require('events');
 
 /**
@@ -105,7 +102,7 @@ class serial extends EventEmitter {
 
 		return new Promise(async (resolve, reject) => {
 			try{
-				const leonardo = new SerialPort(self.conf.port, {baudRate});
+				const leonardo = new SerialPort({ path: self.conf.port, baudRate });
 
 				leonardo.on('error', async error => {
 					await sleep(100);
@@ -218,32 +215,25 @@ class serial extends EventEmitter {
 			self.conf.softReset = false;
 		}
 
-		return new Promise((resolve, reject) => {
-			self.port = new SerialPort(self.conf.port, {
-					baudRate: parseInt(self.conf.baud)
-				},
-				function (error) {
-					if(error) {
-						self.emit('error', error);
-
-						if(self.conf.autoreconnect !== true) return reject(error);
-
-						if(self.debug){
-							console.error(`Attempting to reconnect ${self.conf.port} [${self.conf.baud}bps]...`);
-						}
-
-						setTimeout(() => self.connect(), self.reconnectInterval);
-
-						resolve(false);
-					}
-
-					resolve(true);
-					return;
-				}
-			);
-
-			self._registerListeners();
-		});
+        try {
+            self.port = new SerialPort({
+                path: self.conf.port,
+                baudRate: parseInt(self.conf.baud),
+                autoOpen: true,
+            });
+    
+            self._registerListeners();
+            return true;
+        } catch (error) {
+            self.emit('error', error);
+            if(self.conf.autoreconnect === true) {
+                if(self.debug){
+                    console.error(`Attempting to reconnect ${self.conf.port} [${self.conf.baud}bps]...`);
+                }
+                setTimeout(() => self.connect(), self.reconnectInterval);
+            }
+            return false;
+        }
 	};
 
 	/**
@@ -275,7 +265,7 @@ class serial extends EventEmitter {
 						? self.conf.parser.interval
 						: 30;
 
-				self._parser = self.port.pipe(new InterByteTimeout({ interval }));
+				self._parser = self.port.pipe(new InterByteTimeoutParser({ interval }));
 
 				if(addEmitter){
 					self._parser.on('data', received => {
@@ -291,7 +281,7 @@ class serial extends EventEmitter {
 						? self.conf.parser.length
 						: 1;
 
-				self._parser = self.port.pipe(new ByteLength({ length }));
+				self._parser = self.port.pipe(new ByteLengthParser({ length }));
 
 				if(addEmitter){
 					self._parser.on('data', received => {
@@ -306,7 +296,7 @@ class serial extends EventEmitter {
 						? self.conf.parser.delimiter
 						: '\n';
 
-				self._parser = self.port.pipe(new Readline(delimiter));
+				self._parser = self.port.pipe(new ReadlineParser({ delimiter }));
 
 				if(addEmitter){
 					self._parser.on('data', data => {
@@ -383,9 +373,9 @@ class serial extends EventEmitter {
 				self._parser.once('data', cb);
 			} else {
 				self._parser.once('data', data => {
-					clearTimeout(interrupt);
-					resolve(_handleStringResponse(data));
-				});
+						clearTimeout(interrupt);
+						resolve(_handleStringResponse(data));
+					});
 			}
 		});
 	};
