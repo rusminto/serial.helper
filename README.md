@@ -2,7 +2,7 @@
 
 A simple promise-based helper/wrapper for the excellent [node-serialport](https://serialport.io/) library. This helper simplifies common use cases like auto-reconnection, request-response patterns, and event handling.
 
-This version has been updated to use `serialport` v13.
+This version has been updated to use `serialport` v12.
 
 ## Installation
 

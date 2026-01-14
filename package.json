@@ -11,7 +11,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/iqrok/serial.helper.git"
+    "url": "git+https://github.com/rusminto/serial.helper.git"
   },
   "keywords": [
     "serial",
@@ -20,10 +20,10 @@
   "author": "iqrok",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/iqrok/serial.helper/issues"
+    "url": "https://github.com/rusminto/serial.helper/issues"
   },
-  "homepage": "https://github.com/iqrok/serial.helper#readme",
+  "homepage": "https://github.com/rusminto/serial.helper#readme",
 "dependencies": {
-    "serialport": "^13.0.0"
+    "serialport": "12.0.0"
   }
 }
